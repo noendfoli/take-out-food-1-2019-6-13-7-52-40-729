@@ -1,63 +1,40 @@
+var allItems = loadAllItems();
+var promote = loadPromotions()[1].items;
+var totalPrice = 0;
+var halfDiscount = 0
+var halfPriceDith = [];
 function bestCharge(selectedItems) {
-  return /*TODO*/;
+ return getRecipetHead(selectedItems)+getRecipetBody()
 }
-function getItemAndCount(selectedItems){
-    var order = selectedItems.map((vaule) =>{
-       var product ={
-             id:vaule.split("x")[0],
-             count:vaule.split("x")[1]
-       };
-       return product;
-       })
-    return order;
+function getRecipetHead(selectedItems){
+    let recipetHead = `============= 订餐明细 =============\n`;
+    selectedItems.forEach(item => {
+      let dich = item.split(" x ");
+      let itemDich = allItems.find((dtitem) => {
+        return dtitem.id === dich[0];
+      })
+      totalPrice += itemDich.price * dich[1];
+      if (promote.includes(itemDich.id)) {
+        halfDiscount += itemDich.price * dich[1] / 2;
+        halfPriceDith.push(itemDich.name);
+      }
+      recipetHead += `${itemDich.name} x ${dich[1]} = ${itemDich.price * dich[1]}元\n`;
+    });
+    return recipetHead+`-----------------------------------\n`
 }
-function getDiscount(order){
-    var halfDiscount = [];
-    var fullDiscount = [];
-    var allItems = loadAllItems();
-    var promote = loadPromotions();
-    halfDiscount = order.reduce((acct,value) =>{
-      acct += promote.items.includes(value.id)?allItems.find((item)=>{
-        return item.id == vaule.id
-      }).price*value.count*0.5:allItems.find((item)=>{
-        return item.id == vaule.id
-      }).price*value.count;
-      return acct
-    },0)
-    fullDiscount = order.reduce((acct,value) =>{
-      acct +=allItems.find((item)=>{
-         return item.id == vaule.id
-      }).price*value.count;
-      return acct
-    },0)
-    fullDiscount = fullDiscount>33?fullDiscount-6:fullDiscount
-    var allDiscount = {
-      halfDiscount:halfDiscount,
-      fullDiscount:fullDiscount
-    }
-    return allDiscount;
+function getRecipetBody(){
+    let receiptBody = choseBestCheap(totalPrice,halfDiscount,halfPriceDith);
+    receiptBody += `总计：${Number(totalPrice)}元\n===================================`
+    return receiptBody;
 }
-
-function compareDiscount(allDiscount){
-    if(allDiscount.fullDiscount>allDiscount.halfDiscount){
-      
-    }
-}
-function selectDiscount(order){
-   var allItems = loadAllItems();
-   var promote = loadPromotions();
-   var receipt = [];
-   order.map((value)=>{
-     var item = {};
-     item = {
-       name:allItems.find((item)=>{
-        return item.id == vaule.id
-     }).name,
-       count:value.count,
-       subTotal:allItems.find((item)=>{
-        return item.id == vaule.id
-        }).price*promote.items.includes(value.id)?value.count
-       discountType:""
-     }
-   })
+function choseBestCheap(){
+  let receiptBody = ''
+  if ((totalPrice >= 30 && halfDiscount > 6) || (totalPrice < 30 && halfDiscount != 0)) {
+    totalPrice -= halfDiscount;
+    receiptBody += `使用优惠:\n指定菜品半价(${halfPriceDith.join('，')})，省${halfDiscount}元\n-----------------------------------\n`
+  } else if (totalPrice > 30 && halfDiscount <= 6) {
+    totalPrice -= 6;
+    receiptBody += `使用优惠:\n满30减6元，省6元\n-----------------------------------\n`
+  }
+  return receiptBody
 }
